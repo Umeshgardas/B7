@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./qr.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>QR Code Generator — Fixed</h1>
+        <div class="muted">
+          Enter text or a URL, generate a QR code, adjust size/error-correction
+          and download the PNG.
+        </div>
+
+        <div style="margin-top: 14px" class="grid">
+          <div>
+            <label class="muted">Text or URL</label>
+            <textarea
+              id="qr-input"
+              rows="5"
+              placeholder="Enter any text..."
+            ></textarea>
+
+            <div class="row" style="margin-top: 10px">
+              <div style="flex: 1">
+                <label class="muted">Size</label>
+                <select id="qr-size">
+                  <option value="128" selected>128 x 128</option>
+                  <option value="200">200 x 200</option>
+                  <option value="300">300 x 300</option>
+                  <option value="400">400 x 400</option>
+                  <option value="512">512 x 512</option>
+                </select>
+              </div>
+
+              <div style="width: 150px">
+                <label class="muted">Error correction</label>
+                <select id="qr-level">
+                  <option value="L">L (7%)</option>
+                  <option value="M" selected>M (15%)</option>
+                  <option value="Q">Q (25%)</option>
+                  <option value="H">H (30%)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="controls-row">
+              <button id="generateBtn">Generate</button>
+              <button id="downloadBtn" class="btn-ghost">Download PNG</button>
+              <button id="clearBtn" class="btn-ghost">Clear</button>
+              <label class="muted" style="margin-left: auto"
+                >Tip: <strong>Ctrl+Enter</strong> to generate. Settings
+                auto-regenerate when changed.</label
+              >
+            </div>
+
+            <p class="muted" style="margin-top: 10px">
+              The input is saved in localStorage. If nothing is entered,
+              generation is prevented.
+            </p>
+          </div>
+
+          <aside
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 10px;
+            "
+          >
+            <div id="qrcode">No QR yet</div>
+            <div class="preview-note">
+              Preview (white background). Use Download to save as PNG.
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    // const inputEl = document.getElementById("qr-input");
+    // const sizeEl = document.getElementById("qr-size");
+    // const levelEl = document.getElementById("qr-level");
+    // const generateContainer = document.getElementById("generateBtn");
+    // const qrcodeContainer = document.getElementById("qrcode");
+    // // const inputEl = document.getElementById("qr-inpt");
+
+    // let qrcode = null;
+    // function generateQR() {
+    //   qrcodeContainer.innerHTML = "";
+    //   const text = inputEl.value.trim();
+    //   if (!text) {
+    //     qrcodeContainer.textContent = "No data";
+    //     return;
+    //   }
+
+    //   const size = parseInt(sizeEl.value);
+    //   const level = levelEl.value;
+
+    //   qrcode = new QRCode(qrcodeContainer, {
+    //     text: text,
+    //     width: size,
+    //     height: size,
+    //     colorDark: "black",
+    //     colorLight: "white",
+    //     correctionLevel: QRCode.CorrectionLevel[level],
+    //   });
+    // }
+
+    // generateContainer.addEventListener("click", generateQR);
+  </script>
+</html>

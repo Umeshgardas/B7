@@ -1,43 +1,354 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <link rel="stylesheet" href="./todo.css" />
-  </head>
-  <body>
-    <div class="contianer">
-      <h2>To-Do List</h2>
-      <div class="input-area">
-        <input type="text" placeholder="Enter a task" id="taskInput" />
-        <button onclick="addTask()">Add</button>
-        Hi
-      </div>
-      <ul id="taskList"></ul>
+<head>
+<meta charset="UTF-8">
+<title>Ultimate To-Do App</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #eef2f3;
+    padding: 30px;
+    display: flex;
+    justify-content: center;
+    transition: 0.3s;
+  }
+  body.dark {
+    background: #1e1e1e;
+    color: white;
+  }
+
+  .container {
+    width: 480px;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transition: 0.3s;
+  }
+  body.dark .container {
+    background: #2e2e2e;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 18px;
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+
+  .dark-toggle {
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  /* INPUT AREA */
+  .input-area {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  input, select {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    flex: 1;
+  }
+
+  button {
+    padding: 10px 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  /* FILTER & SEARCH */
+  .filters {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0;
+  }
+  .filters select {
+    width: 48%;
+  }
+
+  /* TASK LIST */
+  ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    background: #f8f9fa;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-left: 6px solid #007bff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.25s;
+    cursor: grab;
+  }
+
+  body.dark li { background: #3b3b3b; }
+
+  li.dragging {
+    opacity: 0.4;
+  }
+
+  li.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+    border-left-color: green;
+  }
+
+  /* PRIORITY COLORS */
+  li.high { border-left-color: red; }
+  li.medium { border-left-color: orange; }
+  li.low { border-left-color: #007bff; }
+
+  /* BUTTON GROUP */
+  .btns {
+    display: flex;
+    gap: 6px;
+  }
+  .edit-btn { background: orange; }
+  .remove-btn { background: red; }
+  .check-btn { background: green; }
+
+  /* ANIMATION */
+  li.added {
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn {
+    from { transform: translateY(-6px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  li.removed {
+    animation: fadeOut 0.4s forwards;
+  }
+  @keyframes fadeOut {
+    to { transform: translateX(40px); opacity: 0; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="top-bar">
+    <h2>Ultimate To-Do App</h2>
+    <button class="dark-toggle" onclick="toggleDarkMode()">Dark</button>
+  </div>
+
+  <!-- SEARCH -->
+  <input id="searchBox" type="text" placeholder="Search task..." onkeyup="applyFilters()">
+
+  <!-- ADD TASK -->
+  <div class="input-area">
+    <input type="text" id="taskInput" placeholder="Enter task...">
+    <select id="prioritySelect">
+      <option value="low">Low</option>
+      <option value="medium">Medium</option>
+      <option value="high">High</option>
+    </select>
+    <button onclick="addTask()">Add</button>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <select id="statusFilter" onchange="applyFilters()">
+      <option value="all">All</option>
+      <option value="completed">Completed</option>
+      <option value="pending">Pending</option>
+    </select>
+
+    <select id="priorityFilter" onchange="applyFilters()">
+      <option value="all">All Priorities</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+  </div>
+
+  <ul id="taskList"></ul>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", loadTasks);
+
+/* ---------------- ADD TASK ---------------- */
+function addTask() {
+  const text = taskInput.value.trim();
+  const priority = prioritySelect.value;
+
+  if (text === "") return alert("Enter a task!");
+
+  const task = { text, completed: false, priority };
+  saveTask(task);
+  renderTask(task, true);
+
+  taskInput.value = "";
+}
+
+/* ---------------- RENDER TASK ---------------- */
+function renderTask(task, animate=false) {
+  const li = document.createElement("li");
+  li.draggable = true;
+  li.classList.add(task.priority);
+  if (task.completed) li.classList.add("completed");
+  if (animate) li.classList.add("added");
+
+  li.innerHTML = `
+    <span>${task.text}</span>
+
+    <div class="btns">
+      <button class="check-btn" onclick="toggleComplete(this)">✓</button>
+      <button class="edit-btn" onclick="editTask(this)">✎</button>
+      <button class="remove-btn" onclick="removeTask(this)">X</button>
     </div>
-  </body>
-  <script>
-    function addTask() {
-      const taskInput = document.getElementById("taskInput");
-      const taskText = taskInput.value.trim();
+  `;
 
-      if (taskText === "") {
-        alert("Please enter a task!");
-        return;
-      }
+  addDragEvents(li);
 
-      const li = document.createElement("li");
-      li.innerHTML = `
-      ${taskText} <button class="remove-btn" onclick="removeTask(this)" >X</button>
-      `;
-      document.getElementById("taskList").appendChild(li);
-      taskInput.value = "";
-    }
+  taskList.appendChild(li);
+}
 
-    function removeTask(button) {
-      const li = button.parentElement;
-      li.remove();
-    }
-  </script>
+/* ---------------- SAVE TASK ---------------- */
+function saveTask(task) {
+  const tasks = loadStorage();
+  tasks.push(task);
+  saveStorage(tasks);
+}
+
+/* ---------------- STORAGE HELPERS ---------------- */
+function loadStorage() {
+  return JSON.parse(localStorage.getItem("tasks") || "[]");
+}
+function saveStorage(tasks) {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+/* ---------------- LOAD EXISTING TASKS ---------------- */
+function loadTasks() {
+  const tasks = loadStorage();
+  tasks.forEach(t => renderTask(t));
+
+  if (localStorage.getItem("darkMode") === "on") {
+    document.body.classList.add("dark");
+  }
+}
+
+/* ---------------- REMOVE TASK ---------------- */
+function removeTask(btn) {
+  const li = btn.closest("li");
+  li.classList.add("removed");
+
+  setTimeout(() => {
+    li.remove();
+    updateStorage();
+  }, 350);
+}
+
+/* ---------------- EDIT TASK ---------------- */
+function editTask(btn) {
+  const li = btn.closest("li");
+  const span = li.querySelector("span");
+
+  const updated = prompt("Edit task:", span.innerText);
+  if (updated !== null && updated.trim() !== "") {
+    span.innerText = updated;
+  }
+
+  updateStorage();
+}
+
+/* ---------------- COMPLETE TASK ---------------- */
+function toggleComplete(btn) {
+  const li = btn.closest("li");
+  li.classList.toggle("completed");
+  updateStorage();
+}
+
+/* ---------------- UPDATE STORAGE AFTER ANY CHANGE ---------------- */
+function updateStorage() {
+  const tasks = [];
+  document.querySelectorAll("#taskList li").forEach(li => {
+    tasks.push({
+      text: li.querySelector("span").innerText,
+      completed: li.classList.contains("completed"),
+      priority: [...li.classList].find(c => 
+        ["high","medium","low"].includes(c)
+      )
+    });
+  });
+  saveStorage(tasks);
+  applyFilters();
+}
+
+/* ---------------- DARK MODE ---------------- */
+function toggleDarkMode() {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("darkMode",
+    document.body.classList.contains("dark") ? "on" : "off"
+  );
+}
+
+/* ---------------- SEARCH + FILTER ---------------- */
+function applyFilters() {
+  const search = searchBox.value.toLowerCase();
+  const status = statusFilter.value;
+  const priority = priorityFilter.value;
+
+  document.querySelectorAll("#taskList li").forEach(li => {
+    const text = li.querySelector("span").innerText.toLowerCase();
+    const isCompleted = li.classList.contains("completed");
+    const pri = [...li.classList].find(c => ["high","medium","low"].includes(c));
+
+    let show = true;
+
+    if (!text.includes(search)) show = false;
+    if (status === "completed" && !isCompleted) show = false;
+    if (status === "pending" && isCompleted) show = false;
+    if (priority !== "all" && priority !== pri) show = false;
+
+    li.style.display = show ? "flex" : "none";
+  });
+}
+
+/* ---------------- DRAG & DROP ---------------- */
+function addDragEvents(li) {
+  li.addEventListener("dragstart", () => li.classList.add("dragging"));
+  li.addEventListener("dragend", () => {
+    li.classList.remove("dragging");
+    updateStorage();
+  });
+}
+
+taskList.addEventListener("dragover", e => {
+  e.preventDefault();
+  const dragging = document.querySelector(".dragging");
+  const after = Array.from(taskList.children).find(li => {
+    return e.clientY <= li.offsetTop + li.offsetHeight / 2;
+  });
+
+  if (after) taskList.insertBefore(dragging, after);
+  else taskList.appendChild(dragging);
+});
+
+</script>
+
+</body>
 </html>
