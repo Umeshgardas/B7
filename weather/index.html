@@ -8,6 +8,9 @@
   </head>
   <body>
     <div class="app">
+      <a href="./index.html">Home</a>
+      <a href="../animation.html">Animation</a>
+
       <h2>Weather Search</h2>
       <input type="text" id="cityInput" placeholder="Enter city name..." />
       <button id="searchBtn">Search</button>
@@ -19,7 +22,6 @@
         const input = document.getElementById("cityInput");
         const result = document.getElementById("result");
         const btn = document.getElementById("searchBtn");
-
 
         async function searchWeather() {
           const city = input.value.trim();
